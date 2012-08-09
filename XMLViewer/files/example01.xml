@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<?customProcessingInstruction
+	XML processor specific
+	content ?>
+<!DOCTYPE colors
+	PUBLIC "//IBM/XML/COLORS/" "colors.dtd">
+<!-- all colors -->
+<colors>
+	<!-- begin color definitions -->
+	<color name="plaintext" foreground="#000000"
+		background="#D4D0C8" />
+	<color name="bold" foreground="#000000"
+		background="#B3ACA0" />
+	<![CDATA[<123456789>]]>
+	Normal text content.
+	===&gt;look at me!&lt;===
+	<color name="inverse" foreground="#F0F0F0"
+		background="#D4D0C8" />
+</colors>
