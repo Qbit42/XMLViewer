@@ -1,8 +1,11 @@
-package de.qbyte.xmlviewer;
+package de.qbyte.xmlviewer.lexer;
 
 import java.util.Stack;
 
-public class ModifyLexer {
+import de.qbyte.xmlviewer.util.EContext;
+import de.qbyte.xmlviewer.util.EToken;
+
+public class LineLexer {
 
 	/* ***** CONSTANTS ***** */
 
@@ -15,13 +18,13 @@ public class ModifyLexer {
 	private int					rangeEnd;
 	private int					tokenStart;
 	private int					c;
-	private Stack<Context>		context;
+	private Stack<EContext>		context;
 
 	/* ***** CONSTRUCTORS ***** */
 
-	public ModifyLexer() {
-		this.context = new Stack<Context>();
-		this.context.push(Context.DOCUMENT);
+	public LineLexer() {
+		this.context = new Stack<EContext>();
+		this.context.push(EContext.DOCUMENT);
 	}
 
 	/* ***** METHODS ***** */
@@ -32,93 +35,93 @@ public class ModifyLexer {
 		this.rangeEnd = this.range.length() - 1;
 	}
 
-	public Token nextToken() {
+	public EToken nextToken() {
 		this.tokenStart = this.position;
 		read(1);
 
 		// EOF
 		if (this.c == EOF) {
-			return Token.EOF;
+			return EToken.EOF;
 		}
 
 		// ATTRIBUTE_EQUAL_SIGN
-		if (this.c == '=' && (this.context.peek() == Context.TAG_OPEN || this.context.peek() == Context.PROCESSING_INSTRUCTION)) {
-			return Token.ATTRIBUTE_EQUAL_SIGNS;
+		if (this.c == '=' && (this.context.peek() == EContext.TAG_OPEN || this.context.peek() == EContext.PROCESSING_INSTRUCTION)) {
+			return EToken.ATTRIBUTE_EQUAL_SIGNS;
 		}
 
 		// ATTRIBUTE_NAMES
 		if (Character.isLetter(this.c)
-				&& (this.context.peek() == Context.TAG_OPEN || this.context.peek() == Context.PROCESSING_INSTRUCTION)) {
+				&& (this.context.peek() == EContext.TAG_OPEN || this.context.peek() == EContext.PROCESSING_INSTRUCTION)) {
 			for (int i = 1; i <= this.rangeEnd; i++) {
 				if (next(i) == '=') {
 					read(i - 1);
-					return Token.ATTRIBUTE_NAMES;
+					return EToken.ATTRIBUTE_NAMES;
 				}
 			}
 		}
 
 		// ATTRIBUTE_VALUES
-		if (this.c == '"' && (this.context.peek() == Context.TAG_OPEN || this.context.peek() == Context.PROCESSING_INSTRUCTION)) {
+		if (this.c == '"' && (this.context.peek() == EContext.TAG_OPEN || this.context.peek() == EContext.PROCESSING_INSTRUCTION)) {
 			for (;;) {
 				read(1);
 				if (this.c == '"' || this.c == EOF)
-					return Token.ATTRIBUTE_VALUES;
+					return EToken.ATTRIBUTE_VALUES;
 			}
 		}
 
 		// CDATA_CONTENT
-		if (this.context.peek() == Context.CONTENT && this.context.contains(Context.CDATA)) {
+		if (this.context.peek() == EContext.CONTENT && this.context.contains(EContext.CDATA)) {
 			for (;;) {
 				if (next(1) == EOF || findNext("]]>")) {
 					this.context.pop();
-					return Token.CDATA_CONTENT;
+					return EToken.CDATA_CONTENT;
 				}
 				read(1);
 			}
 		}
 
 		// CDATA_DELIMITERS
-		if (this.c == '<' && (this.context.peek() == Context.DOCUMENT || this.context.peek() == Context.CONTENT)) {
+		if (this.c == '<' && (this.context.peek() == EContext.DOCUMENT || this.context.peek() == EContext.CONTENT)) {
 			if (findNext("![CDATA[")) {
 				read(8);
-				this.context.push(Context.CDATA);
-				this.context.push(Context.CONTENT);
-				return Token.CDATA_DELIMITERS;
+				this.context.push(EContext.CDATA);
+				this.context.push(EContext.CONTENT);
+				return EToken.CDATA_DELIMITERS;
 			}
 		}
-		if (this.c == ']' && this.context.peek() == Context.CDATA) {
+		if (this.c == ']' && this.context.peek() == EContext.CDATA) {
 			if (findNext("]>")) {
 				read(2);
 				this.context.pop();
-				return Token.CDATA_DELIMITERS;
+				return EToken.CDATA_DELIMITERS;
 			}
 		}
 
 		// COMMENT_CONTENT
-		if (this.context.peek() == Context.CONTENT && this.context.contains(Context.COMMENT)) {
+		if (this.context.peek() == EContext.CONTENT && this.context.contains(EContext.COMMENT)) {
 			for (;;) {
 				if (next(1) == EOF || findNext("-->")) {
 					this.context.pop();
-					return Token.COMMENT_CONTENT;
+					return EToken.COMMENT_CONTENT;
 				}
 				read(1);
 			}
 		}
 
 		// COMMENT_DELIMITERS
-		if (this.c == '<' && (this.context.peek() == Context.DOCUMENT || this.context.peek() == Context.CONTENT)) {
+		if (this.c == '<' && (this.context.peek() == EContext.DOCUMENT || this.context.peek() == EContext.CONTENT)) {
 			if (findNext("!--")) {
 				read(3);
-				this.context.push(Context.COMMENT);
-				this.context.push(Context.CONTENT);
-				return Token.COMMENT_DELIMITERS;
+				this.context.push(EContext.COMMENT);
+				this.context.push(EContext.CONTENT);
+				return EToken.COMMENT_DELIMITERS;
 			}
 		}
-		if (this.c == '-' && this.context.peek() == Context.COMMENT) {
+		if (this.c == '-' && this.context.peek() == EContext.COMMENT) {
 			if (findNext("->")) {
 				read(2);
 				this.context.pop();
-				return Token.COMMENT_DELIMITERS;
+				return EToken.COMMENT_DELIMITERS;
 			}
 		}
 
@@ -127,17 +130,17 @@ public class ModifyLexer {
 		}
 
 		// DECLARATION_DELIMITERS
-		if (this.c == '<' && this.context.peek() == Context.DOCUMENT) {
+		if (this.c == '<' && this.context.peek() == EContext.DOCUMENT) {
 			if (findNext("!") && !findNext("!--") && !findNext("![CDATA[")) {
 				read(1);
-				this.context.push(Context.DECLARATION);
-				this.context.push(Context.NAME);
-				return Token.DECLARATION_DELIMITERS;
+				this.context.push(EContext.DECLARATION);
+				this.context.push(EContext.NAME);
+				return EToken.DECLARATION_DELIMITERS;
 			}
 		}
-		if (this.c == '>' && this.context.peek() == Context.DECLARATION) {
+		if (this.c == '>' && this.context.peek() == EContext.DECLARATION) {
 			this.context.pop();
-			return Token.DECLARATION_DELIMITERS;
+			return EToken.DECLARATION_DELIMITERS;
 		}
 
 		// DOCTYPE_NAME
@@ -157,11 +160,11 @@ public class ModifyLexer {
 		}
 
 		// ENTITY_REFERENCES
-		if (this.c == '&' && this.context.peek() == Context.CONTENT) {
+		if (this.c == '&' && this.context.peek() == EContext.CONTENT) {
 			for (;;) {
 				read(1);
 				if (this.c == ';' || this.c == EOF)
-					return Token.ENTITY_REFERENCES;
+					return EToken.ENTITY_REFERENCES;
 			}
 		}
 
@@ -170,63 +173,63 @@ public class ModifyLexer {
 		}
 
 		// PROCESSING_INSTRUCTION_DELIMITERS
-		if (this.c == '<' && this.context.peek() == Context.DOCUMENT) {
+		if (this.c == '<' && this.context.peek() == EContext.DOCUMENT) {
 			if (findNext("?")) {
 				read(1);
-				this.context.push(Context.PROCESSING_INSTRUCTION);
-				this.context.push(Context.NAME);
-				return Token.PROCESSING_INSTRUCTION_DELIMITERS;
+				this.context.push(EContext.PROCESSING_INSTRUCTION);
+				this.context.push(EContext.NAME);
+				return EToken.PROCESSING_INSTRUCTION_DELIMITERS;
 			}
 		}
-		if (this.c == '?' && this.context.peek() == Context.PROCESSING_INSTRUCTION) {
+		if (this.c == '?' && this.context.peek() == EContext.PROCESSING_INSTRUCTION) {
 			if (findNext(">")) {
 				read(1);
 				this.context.pop();
-				return Token.PROCESSING_INSTRUCTION_DELIMITERS;
+				return EToken.PROCESSING_INSTRUCTION_DELIMITERS;
 			}
 		}
 
 		// TAG_DELIMITERS
-		if (this.c == '<' && (this.context.peek() == Context.DOCUMENT || this.context.peek() == Context.CONTENT)) {
+		if (this.c == '<' && (this.context.peek() == EContext.DOCUMENT || this.context.peek() == EContext.CONTENT)) {
 			if (findNext("/")) {
 				read(1);
-				this.context.push(Context.TAG_CLOSE);
-				this.context.push(Context.NAME);
-				return Token.TAG_DELIMITERS;
+				this.context.push(EContext.TAG_CLOSE);
+				this.context.push(EContext.NAME);
+				return EToken.TAG_DELIMITERS;
 			}
 			if (Character.isLetter(next(1))) {
-				this.context.push(Context.TAG_OPEN);
-				this.context.push(Context.NAME);
-				return Token.TAG_DELIMITERS;
+				this.context.push(EContext.TAG_OPEN);
+				this.context.push(EContext.NAME);
+				return EToken.TAG_DELIMITERS;
 			}
 		}
-		if (this.c == '/' && this.context.peek() == Context.TAG_OPEN) {
+		if (this.c == '/' && this.context.peek() == EContext.TAG_OPEN) {
 			if (findNext(">")) {
 				read(1);
 				this.context.pop();
-				return Token.TAG_DELIMITERS;
+				return EToken.TAG_DELIMITERS;
 			}
 		}
-		if (this.c == '>' && (this.context.peek() == Context.TAG_OPEN || this.context.peek() == Context.TAG_CLOSE)) {
-			if (this.context.peek() == Context.TAG_OPEN) {
+		if (this.c == '>' && (this.context.peek() == EContext.TAG_OPEN || this.context.peek() == EContext.TAG_CLOSE)) {
+			if (this.context.peek() == EContext.TAG_OPEN) {
 				this.context.pop();
-				this.context.push(Context.CONTENT);
+				this.context.push(EContext.CONTENT);
 			}
-			if (this.context.peek() == Context.TAG_CLOSE)
+			if (this.context.peek() == EContext.TAG_CLOSE)
 				this.context.pop();
-			return Token.TAG_DELIMITERS;
+			return EToken.TAG_DELIMITERS;
 		}
 
 		// TAG_NAMES
 		if (Character.isLetter(this.c)
-				&& this.context.peek() == Context.NAME
-				&& (this.context.contains(Context.TAG_OPEN) || this.context.contains(Context.TAG_CLOSE)
-						|| this.context.contains(Context.PROCESSING_INSTRUCTION) || this.context.contains(Context.DECLARATION))) {
+				&& this.context.peek() == EContext.NAME
+				&& (this.context.contains(EContext.TAG_OPEN) || this.context.contains(EContext.TAG_CLOSE)
+						|| this.context.contains(EContext.PROCESSING_INSTRUCTION) || this.context.contains(EContext.DECLARATION))) {
 			for (int i = 1; i <= this.rangeEnd; i++) {
 				if (next(i) == EOF || Character.isWhitespace(next(i)) || next(i) == '>') {
 					this.context.pop();
 					read(i - 1);
-					return Token.TAG_NAMES;
+					return EToken.TAG_NAMES;
 				}
 			}
 		}
@@ -237,11 +240,11 @@ public class ModifyLexer {
 				read(1);
 			} while (Character.isWhitespace(this.c));
 			unread();
-			return Token.WHITESPACE;
+			return EToken.WHITESPACE;
 		}
 
 		// OTHER
-		return Token.OTHER;
+		return EToken.OTHER;
 	}
 
 	public int getTokenStart() {

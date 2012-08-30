@@ -11,6 +11,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import de.qbyte.xmlviewer.styler.LineStyler;
+
 public class XMLViewer {
 
 	/* ***** PROPERTIES ***** */
@@ -48,9 +50,9 @@ public class XMLViewer {
 		// create text editor
 		this.textEditor = new StyledText(this.shell, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		this.textEditor.setFont(new Font(this.display, "Courier New", 9, SWT.NORMAL));
-		this.textEditor.addModifyListener(new ModifyStyler());
+//		this.textEditor.addModifyListener(new ModifyStyler());
 		this.textEditor.setText(this.text.toString());
-//		this.textEditor.addLineStyleListener(new LineStyler());
+		this.textEditor.addLineStyleListener(new LineStyler());
 
 		// application loop
 		this.shell.open();

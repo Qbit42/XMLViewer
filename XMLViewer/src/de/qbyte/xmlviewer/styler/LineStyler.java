@@ -1,4 +1,4 @@
-package de.qbyte.xmlviewer;
+package de.qbyte.xmlviewer.styler;
 
 import java.util.Vector;
 
@@ -8,6 +8,9 @@ import org.eclipse.swt.custom.LineStyleListener;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+
+import de.qbyte.xmlviewer.lexer.LineLexer;
+import de.qbyte.xmlviewer.util.EToken;
 
 public class LineStyler implements LineStyleListener {
 
@@ -22,10 +25,10 @@ public class LineStyler implements LineStyleListener {
 
 		Vector<StyleRange> styles = new Vector<StyleRange>();
 		this.lexer.setRange(event.lineText);
-		Token token = this.lexer.nextToken();
+		EToken token = this.lexer.nextToken();
 
-		while (token != Token.EOF) {
-			if (token == Token.OTHER || token == Token.WHITESPACE) {
+		while (token != EToken.EOF) {
+			if (token == EToken.OTHER || token == EToken.WHITESPACE) {
 				// do nothing
 			} else {
 				StyleRange style = new StyleRange();

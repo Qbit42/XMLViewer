@@ -1,6 +1,6 @@
-package de.qbyte.xmlviewer;
+package de.qbyte.xmlviewer.util;
 
-public enum Token {
+public enum EToken {
 
 	/* ***** ENUMERATION ***** */
 
@@ -52,7 +52,7 @@ public enum Token {
 
 	/* ***** CONSTRUCTORS ***** */
 
-	private Token(String name) {
+	private EToken(String name) {
 		this.setName(name);
 	}
 

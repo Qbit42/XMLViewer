@@ -1,5 +1,5 @@
-package de.qbyte.xmlviewer;
+package de.qbyte.xmlviewer.util;
 
-public enum Context {
+public enum EContext {
 	DOCUMENT, PROCESSING_INSTRUCTION, DECLARATION, TAG_OPEN, TAG_CLOSE, COMMENT, CDATA, CONTENT, NAME;
 }

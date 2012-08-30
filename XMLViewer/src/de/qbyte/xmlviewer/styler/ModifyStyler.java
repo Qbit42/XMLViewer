@@ -1,4 +1,4 @@
-package de.qbyte.xmlviewer;
+package de.qbyte.xmlviewer.styler;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -7,6 +7,9 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+
+import de.qbyte.xmlviewer.lexer.ModifyLexer;
+import de.qbyte.xmlviewer.util.EToken;
 
 public class ModifyStyler implements ModifyListener {
 
@@ -17,9 +20,9 @@ public class ModifyStyler implements ModifyListener {
 		ModifyLexer lexer = new ModifyLexer();
 		lexer.setRange(textEditor.getText());
 		
-		Token token = lexer.nextToken();
-		while (token != Token.EOF) {
-			if (token == Token.OTHER || token == Token.WHITESPACE) {
+		EToken token = lexer.nextToken();
+		while (token != EToken.EOF) {
+			if (token == EToken.OTHER || token == EToken.WHITESPACE) {
 				// do nothing
 			} else {
 				StyleRange style = new StyleRange();
